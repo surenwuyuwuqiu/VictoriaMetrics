@@ -19,21 +19,24 @@ type influxProcessor struct {
 	skipDbLabel bool
 	promMode    bool
 	isVerbose   bool
+	// If true, use measurement only as metric name (fallback to field when measurement is empty).
+	measurementOnly bool
 }
 
-func newInfluxProcessor(ic *influx.Client, im *vm.Importer, cc int, separator string, skipDbLabel, promMode, verbose bool) *influxProcessor {
+func newInfluxProcessor(ic *influx.Client, im *vm.Importer, cc int, separator string, skipDbLabel, promMode, verbose, measurementOnly bool) *influxProcessor {
 	if cc < 1 {
 		cc = 1
 	}
 
 	return &influxProcessor{
-		ic:          ic,
-		im:          im,
-		cc:          cc,
-		separator:   separator,
-		skipDbLabel: skipDbLabel,
-		promMode:    promMode,
-		isVerbose:   verbose,
+		ic:              ic,
+		im:              im,
+		cc:              cc,
+		separator:       separator,
+		skipDbLabel:     skipDbLabel,
+		promMode:        promMode,
+		isVerbose:       verbose,
+		measurementOnly: measurementOnly,
 	}
 }
 
@@ -119,10 +122,18 @@ func (ip *influxProcessor) do(s *influx.Series) error {
 		_ = cr.Close()
 	}()
 	var name string
-	if s.Measurement != "" {
-		name = fmt.Sprintf("%s%s%s", s.Measurement, ip.separator, s.Field)
+	if ip.measurementOnly {
+		if s.Measurement != "" {
+			name = s.Measurement
+		} else {
+			name = s.Field
+		}
 	} else {
-		name = s.Field
+		if s.Measurement != "" {
+			name = fmt.Sprintf("%s%s%s", s.Measurement, ip.separator, s.Field)
+		} else {
+			name = s.Field
+		}
 	}
 
 	labels := make([]vm.LabelPair, len(s.LabelPairs))

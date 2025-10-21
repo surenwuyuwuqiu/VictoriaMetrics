@@ -286,6 +286,7 @@ const (
 	influxCAFile                    = "influx-CA-file"
 	influxServerName                = "influx-server-name"
 	influxInsecureSkipVerify        = "influx-insecure-skip-verify"
+	influxMeasurementOnly           = "influx-measurement-only"
 )
 
 var (
@@ -372,6 +373,11 @@ var (
 		&cli.BoolFlag{
 			Name:  influxInsecureSkipVerify,
 			Usage: "Whether to skip tls verification when connecting to -influx-addr",
+			Value: false,
+		},
+		&cli.BoolFlag{
+			Name:  influxMeasurementOnly,
+			Usage: "Use measurement only as metric name when importing from InfluxDB SingleFiled Mode. Default: false (measurement + separator + field).",
 			Value: false,
 		},
 	}

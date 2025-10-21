@@ -163,7 +163,8 @@ func main() {
 						c.String(influxMeasurementFieldSeparator),
 						c.Bool(influxSkipDatabaseLabel),
 						c.Bool(influxPrometheusMode),
-						c.Bool(globalVerbose))
+						c.Bool(globalVerbose),
+						c.Bool(influxMeasurementOnly))
 					return processor.run()
 				},
 			},
