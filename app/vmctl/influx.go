@@ -118,9 +118,11 @@ func (ip *influxProcessor) do(s *influx.Series) error {
 	defer func() {
 		_ = cr.Close()
 	}()
+
+	// 修改：仅使用 measurement 作为 metric 名；如果 measurement 为空则使用 field（以避免空名）
 	var name string
 	if s.Measurement != "" {
-		name = fmt.Sprintf("%s%s%s", s.Measurement, ip.separator, s.Field)
+		name = s.Measurement
 	} else {
 		name = s.Field
 	}
@@ -131,6 +133,8 @@ func (ip *influxProcessor) do(s *influx.Series) error {
 		if lp.Name == dbLabel {
 			containsDBLabel = true
 		} else if lp.Name == nameLabel && s.Field == valueField && ip.promMode {
+			// 保留 promMode 的语义：当 field == "value" 并且 promMode 打开时，
+			// 使用 __name__ 标签值覆盖 metric 名
 			name = lp.Value
 		}
 		labels[i] = vm.LabelPair{
